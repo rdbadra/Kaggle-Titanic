@@ -1,0 +1,135 @@
+---
+title: 'Tipología y Ciclo de Vida de los Datos: Práctica 2'
+author: "Autor: Roberto Díaz Badra"
+date: "Enero 2019"
+output:
+  html_document:
+    highlight: default
+    number_sections: yes
+    theme: cosmo
+    toc: yes
+    toc_depth: 2
+    includes:
+      in_header: 75.584-PEC-header.html
+  word_document: default
+  pdf_document:
+    highlight: zenburn
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(eval=T, echo=T)
+```
+
+# Realización
+
+## Descripción del dataset
+El conjunto de datos a analizar ha sido obtenido a partir de la página de Kaggle. Está compuetso por 12 columnas y 891 instancias. Entre los campos, se encuentran los siguientes:
+
+* __PassengerId__: Id de los pasajeros.
+* __Survived__: Campo que indica si el pasajero sobrevivió o no.
+* __Pclass__: Estado socio económico de los pasajeros; 1 = Clase Alta, 2 = Clase Media, 3 = Clase Baja.
+* __Name__: Nombre de los pasajeros.
+* __Sex__: Sexo de los pasajeros.
+* __Age__: Edad en años de los pasajeros. Esta fraccionada en la forma xx.5 si es menor de 1.
+* __SibSp__: Número de hermanos o cónyuges en el Titanic.
+* __Parch__: Número de padres o hijos en el Titanic.
+* __Ticket__: Número del ticket.
+* __Fare__: Precio del viaje.
+* __Cabin__: Número de cabina.
+* __Embarked__: Puerto en el que embarcó. C = Cherbourg, Q = Queenstown, S = Southampton.
+
+## Importancia del dataset
+
+## Problema que pretende responder
+
+## Limpieza de los datos
+
+```{r message= FALSE, warning=FALSE}
+# Lectura de datos
+titanic <- read.table(file="data/train.csv", header=TRUE, sep=",")
+
+# Observamos la estructura del conjunto de datos
+str(titanic)
+head(titanic)
+# Tipo de dato de cada campo
+sapply(titanic, function(x) class(x))
+```
+Factorizamos los campos "Survived", "Pclass", "SibSp" y "Parch", ya que solo toman un conjunto de valores definidos, en lugar de tener valores numéricos, los cuales pueden obtener un conjunto infinito de valores.
+```{r message= FALSE, warning=FALSE}
+cols <- c("Survived", "Pclass", "SibSp", "Parch")
+for (i in cols){
+  titanic[,i] <- as.factor(titanic[,i])
+}
+str(titanic)
+```
+
+### Gestión de elementos vacíos
+
+```{r message= FALSE, warning=FALSE}
+sapply(titanic, function(x) sum(is.na(x)))
+colSums(titanic=="")
+```
+
+Ya que el campo "Age" tiene gran cantidad de elementos vacíos, en los que R ha insertado un "NA", optamos por modificar estos valores nulos, por la media del conjunto de edades.
+```{r message= FALSE, warning=FALSE}
+# Tomamos la media para valores vacíos de la variable "Age"
+titanic$Age[is.na(titanic$Age)] <- mean(titanic$Age, na.rm=TRUE)
+```
+
+Mostramos en un histograma los valores más comunes para el campo "Embarked".
+```{r message= FALSE, warning=FALSE}
+library(ggplot2)
+ggplot(titanic, aes(x=titanic$Embarked))+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  theme_minimal()
+```
+
+Puesto que el valor más común es "S", insertamos este valor en aquellos registros que tengan el campo "Embarked" vacío.
+```{r message= FALSE, warning=FALSE}
+titanic$Embarked[titanic$Embarked==""]="S"
+```
+
+
+### Identificación y tratamiento de valores extremos
+Mostramos en una gráfica de dispersión las tarifas que pagaron los pasajeros del Titanic. Observamos que hay 3 que parecen ser valores extremos, por lo que los eliminaremos para evitar que puedan conducir a conclusiones erróneas.
+```{r message= FALSE, warning=FALSE}
+ggplot(titanic, aes(x=titanic$Name, y=titanic$Fare)) + geom_point()
+```
+Eliminamos aquellas tarifas que tengan un precio superior a 400, ya que como observamos en la gráfica, todos los elementos que nos interesan están por debajo de este valor. Nos quedamos con un total de 888 filas. Creamos una nueva gráfica filtrando por el estado socio económico de los pasajeros, ya que podemos observar que hay elementos que tienen valores mucho más elevados que la media y observamos que estos valores elevados, son de pasajeros de primera clase, por lo que podríamos pensar que son valores correctos.
+```{r message= FALSE, warning=FALSE}
+titanic<-titanic[(titanic$Fare>400)==FALSE,]
+ggplot(titanic, aes(x=titanic$Name, y=titanic$Fare, color=titanic$Pclass)) + geom_point()
+str(titanic)
+```
+
+Mostramos en una nueva gráfica de dispersión todas las edades de los pasajeros en busca de elementos extremos. Como se puede observar, parece que todos siguen la misma distribución, por lo que no será necesario eliminar ningún elemento.
+```{r message= FALSE, warning=FALSE}
+ggplot(titanic, aes(x=titanic$Name, y=titanic$Age)) + geom_point()
+```
+
+### Integración y selección de los datos de interés a analizar
+
+Como hemos visto previamente, de 891 registros que tiene el conjunto de datos, el campo "Cabin" tiene más de 600 elementos vacíos, por lo que es un campo que no aporta gran valor y no tendría sentido estimar unos posibles valores, por ello lo eliminaremos.
+```{r message= FALSE, warning=FALSE}
+titanic$Cabin <- NULL
+str(titanic)
+```
+
+### Almacenamiento del CSV final
+Una vez finalizados todos los procedimientos de limpieza de datos, realizados sobre el conjunto de datos inicial, procedemos a almacenar este conjunto de datos final en un nuevo archivo en formato CSV.
+```{r message= FALSE, warning=FALSE}
+write.csv(titanic, "data/titanic_final.csv")
+```
+
+## Análisis de los datos
+
+### Selección de grupos de datos a analizar
+
+### Comprobación de la normalidad y homogeneridad de la varianza
+
+### Aplicación de pruebas estadísticas para comparar los grupos de datos.
+
+## Representación de los resultados a partir de tablas y gráficas
+
+## Resolución del problema
