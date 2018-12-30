@@ -24,7 +24,7 @@ knitr::opts_chunk$set(eval=T, echo=T)
 # Realización
 
 ## Descripción del dataset
-El conjunto de datos a analizar ha sido obtenido a partir de la página de Kaggle. Está compuetso por 12 columnas y 891 instancias. Entre los campos, se encuentran los siguientes:
+El conjunto de datos a analizar ha sido obtenido a partir de la página de Kaggle(https://www.kaggle.com/c/titanic/data). Está compuetso por 12 columnas y 891 instancias. Entre los campos, se encuentran los siguientes:
 
 * __PassengerId__: Id de los pasajeros.
 * __Survived__: Campo que indica si el pasajero sobrevivió o no.
@@ -40,8 +40,9 @@ El conjunto de datos a analizar ha sido obtenido a partir de la página de Kaggl
 * __Embarked__: Puerto en el que embarcó. C = Cherbourg, Q = Queenstown, S = Southampton.
 
 ## Importancia del dataset
+Este conjunto de datos representa un conjunto de pasajeros que estuvieron en el hundimiento del Titanic. Con este proyecto, se pretende identificar si hubo alguna variable que influyó de manera notable en que algunos pasajeros sobrevivieran.
 
-## Problema que pretende responder
+Mediante este análisis, se podrá llegar a realizar un modelo de clasificación, que mediante los datos de un pasajero, pudiera predecir si este sobreviviera o no al hundimiento del Titanic. De este algoritmo, se podría llegar a obtener conclusiones relevantes, que permitieran a una persona en un futuro tomar decisiones acertadas, para preveer el mejor desenlace en caso de catástrofe.
 
 ## Limpieza de los datos
 
@@ -126,10 +127,10 @@ write.csv(titanic, "data/titanic_final.csv")
 
 ### Selección de grupos de datos a analizar
 
-### Comprobación de la normalidad y homogeneridad de la varianza
+### Comprobación de la normalidad y homogeneidad de la varianza
 
-### Aplicación de pruebas estadísticas para comparar los grupos de datos.
+### Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc.
 
 ## Representación de los resultados a partir de tablas y gráficas
 
-## Resolución del problema
+## Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema?
