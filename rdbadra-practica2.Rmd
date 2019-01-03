@@ -24,7 +24,13 @@ knitr::opts_chunk$set(eval=T, echo=T)
 # Realización
 
 ## Descripción del dataset
-El conjunto de datos a analizar ha sido obtenido a partir de la página de Kaggle(https://www.kaggle.com/c/titanic/data). Está compuetso por 12 columnas y 891 instancias. Entre los campos, se encuentran los siguientes:
+El conjunto de datos a analizar ha sido obtenido a partir de la página de Kaggle(https://www.kaggle.com/c/titanic/data). El 15 de abril de 1912, durante su viaje inaugural, el Titanic se hundió tras colisionar con un iceberg, matando a 1502 de los 2224 pasajeros y tripulación. Esta tragedia, sacudió a la comunidad internacional y condujo a mejores regulaciones de seguridad para barcos.
+
+Una de las razones que produjeron tantas muertes, fue la falta de botes salvavidas para todos los pasajeros y la tripulación. Aunque hubo algún elemento de suerte a la hora de sobrevivir al hundimiento, habían algunos grupos de personas con más probabilidad de sobrevivir que otros, como mujeres, niños y la clase alta.
+
+Nuestro conjunto de datos, posee información sobre diversos pasajeros del Titanic, entre ellos si la persona sobrevivió o no.
+
+Este dataset está compuetso por 12 columnas y 891 instancias. Entre los campos, se encuentran los siguientes:
 
 * __PassengerId__: Id de los pasajeros.
 * __Survived__: Campo que indica si el pasajero sobrevivió o no.
@@ -71,11 +77,10 @@ str(titanic)
 sapply(titanic, function(x) sum(is.na(x)))
 colSums(titanic=="")
 ```
-
-Ya que el campo "Age" tiene gran cantidad de elementos vacíos, en los que R ha insertado un "NA", optamos por modificar estos valores nulos, por la media del conjunto de edades.
+Ya que el campo "Age" tiene gran cantidad de elementos vacíos, en los que R ha insertado un "NA", optamos por modificar estos valores nulos, aplicando el método KNN.
 ```{r message= FALSE, warning=FALSE}
-# Tomamos la media para valores vacíos de la variable "Age"
-titanic$Age[is.na(titanic$Age)] <- mean(titanic$Age, na.rm=TRUE)
+library(VIM)
+titanic$Age[is.na(titanic$Age)] <- kNN(titanic)$Age
 ```
 
 Mostramos en un histograma los valores más comunes para el campo "Embarked".
@@ -86,34 +91,37 @@ ggplot(titanic, aes(x=titanic$Embarked))+
   theme_minimal()
 ```
 
-Puesto que el valor más común es "S", insertamos este valor en aquellos registros que tengan el campo "Embarked" vacío.
+Llevamos a cabo el mismo procedimiento para el campo Embarked que para Age y volvemos a dibujar una gráfica para ver la distribución de elementos.
 ```{r message= FALSE, warning=FALSE}
-titanic$Embarked[titanic$Embarked==""]="S"
+titanic$Embarked[titanic$Embarked==""] <- kNN(titanic)$Embarked
+ggplot(titanic, aes(x=titanic$Embarked))+
+  geom_bar(stat="count", width=0.7, fill="steelblue")+
+  theme_minimal()
 ```
 
 
 ### Identificación y tratamiento de valores extremos
-Mostramos en una gráfica de dispersión las tarifas que pagaron los pasajeros del Titanic. Observamos que hay 3 que parecen ser valores extremos, por lo que los eliminaremos para evitar que puedan conducir a conclusiones erróneas.
+Mostramos en una gráfica de dispersión las tarifas que pagaron los pasajeros del Titanic. Observamos que hay 3 que parecen ser valores extremos.
 ```{r message= FALSE, warning=FALSE}
 ggplot(titanic, aes(x=titanic$Name, y=titanic$Fare)) + geom_point()
 ```
-Eliminamos aquellas tarifas que tengan un precio superior a 400, ya que como observamos en la gráfica, todos los elementos que nos interesan están por debajo de este valor. Nos quedamos con un total de 888 filas. Creamos una nueva gráfica filtrando por el estado socio económico de los pasajeros, ya que podemos observar que hay elementos que tienen valores mucho más elevados que la media y observamos que estos valores elevados, son de pasajeros de primera clase, por lo que podríamos pensar que son valores correctos.
+Creamos una nueva gráfica filtrando por el estado socio económico de los pasajeros, ya que podemos observar que hay elementos que tienen valores mucho más elevados que la media y observamos que estos valores elevados, son de pasajeros de primera clase, por lo que podríamos pensar que son valores correctos. Así que no los eliminaremos.
 ```{r message= FALSE, warning=FALSE}
-titanic<-titanic[(titanic$Fare>400)==FALSE,]
 ggplot(titanic, aes(x=titanic$Name, y=titanic$Fare, color=titanic$Pclass)) + geom_point()
-str(titanic)
 ```
 
-Mostramos en una nueva gráfica de dispersión todas las edades de los pasajeros en busca de elementos extremos. Como se puede observar, parece que todos siguen la misma distribución, por lo que no será necesario eliminar ningún elemento.
+Mostramos en una nueva gráfica de dispersión todas las edades de los pasajeros en busca de elementos extremos, filtrando por el estado socio económico de los pasajeros. Como se puede observar, parece que todos siguen la misma distribución y además están en un rango posible de valores, al tener la persona con mayor edad unos 80 años, por lo que no será necesario eliminar ningún elemento. 
 ```{r message= FALSE, warning=FALSE}
-ggplot(titanic, aes(x=titanic$Name, y=titanic$Age)) + geom_point()
+ggplot(titanic, aes(x=titanic$Name, y=titanic$Age, color=titanic$Pclass)) + geom_point()
 ```
 
 ### Integración y selección de los datos de interés a analizar
 
-Como hemos visto previamente, de 891 registros que tiene el conjunto de datos, el campo "Cabin" tiene más de 600 elementos vacíos, por lo que es un campo que no aporta gran valor y no tendría sentido estimar unos posibles valores, por ello lo eliminaremos.
+Como hemos visto previamente, de 891 registros que tiene el conjunto de datos, el campo "Cabin" tiene más de 600 elementos vacíos, por lo que es un campo que no aporta gran valor y no tendría sentido estimar unos posibles valores, por ello lo eliminaremos. Eliminaremos también los campos "Name" y "Ticket" ya que simplemente nos aportan datos que no deberían tener ninguna relevancia a la hora de ayudarnos a generar relaciones, ya que simplemente nos indican identificadores únicos o nombres que no pueden generar patrones. Almacenaremos el campo "PassengerId" para ejercicios de evaluación, pero será omitido durante los análisis.
 ```{r message= FALSE, warning=FALSE}
 titanic$Cabin <- NULL
+titanic$Name <- NULL
+titanic$Ticket <- NULL
 str(titanic)
 ```
 
@@ -121,16 +129,146 @@ str(titanic)
 Una vez finalizados todos los procedimientos de limpieza de datos, realizados sobre el conjunto de datos inicial, procedemos a almacenar este conjunto de datos final en un nuevo archivo en formato CSV.
 ```{r message= FALSE, warning=FALSE}
 write.csv(titanic, "data/titanic_final.csv")
+titanic$PassengerId <- NULL
 ```
 
 ## Análisis de los datos
 
 ### Selección de grupos de datos a analizar
 
+Para el análisis, se utilizarán aquellas variables que se han escogido hasta ahora, puetso que hemos hecho una limpieza previa de aquellos campos que no resultarían interesantes.
+
 ### Comprobación de la normalidad y homogeneidad de la varianza
+
+#### Análisis de normalidad
+
+Comprobamos si las variables cuantitativas siguen una distribución normal. Para ello llevaremos a cabo varias pruebas de normalidad. Se tomarán en cuenta las siguientes hipótesis:
+
+H0: La muestra proviene de una distribución normal.
+
+H1: La muestra no proviene de una distribución normal.
+
+El nivel de significancia con que se trabajará es de 0.05. Alfa = 0.05
+
+Criterio de Decisión
+
+Si P < Alfa Se rechaza Ho
+
+Si p >= Alfa No se rechaza Ho
+
+```{r message= FALSE, warning=FALSE}
+library(normtest)
+
+hist(titanic$Age)
+jb.norm.test(titanic$Age)
+frosini.norm.test(titanic$Age)
+shapiro.test(titanic$Age)
+```
+```{r message= FALSE, warning=FALSE}
+hist(titanic$Fare)
+jb.norm.test(titanic$Fare)
+frosini.norm.test(titanic$Fare)
+shapiro.test(titanic$Fare)
+```
+
+Como todos los resultador tienen un p-value menor de 0.05, se puede afirmar que estos dos campos no siguen una distribución normal.
+
+#### Análisis de la homogeneidad de la varianza
+
+A continuación pasamos al estudio de la homogeneidad de la varianza. Teniendo en cuenta que nuestras variables cuantitativas no siguen una sitribución normal, llevaremos a cabo el test Fligner-Killeen. Llevaremos a cabo este test para grupos de hombres y mujeres con sus respectivas edades.
+
+```{r message= FALSE, warning=FALSE}
+fligner.test(Age~Sex, data=titanic)
+```
+Al ser el p-value mayor de 0.05, aceptamos la hipótesis de que las varianzas de las muestras son homogéneas.
+
+Ahora lo llevaremos a cabo para los grupos de hombres y mujeres con las respectivas tarifas que pagaron para ser pasajeros del Titanic.
+```{r message= FALSE, warning=FALSE}
+fligner.test(Fare~Sex, data=titanic)
+```
+Al ser el p-value menor de 0.05, se rechaza la hipótesis de que las varianzas de las muestras son homogéneas.
 
 ### Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc.
 
+#### Análisis de correlación
+
+Llevaremos a cabo una análisis de correlaciones para poder deducir que variables tienen mayor influencia sobre el hecho de si un pasajero sobrevivió o no al Titanic utilizando para ello el test de Pearson Chi cuadrado.
+```{r message= FALSE, warning=FALSE}
+cols <- colnames(titanic)
+cols <- cols[-1]
+cols
+matrix <- matrix(nc=1, nr=0)
+for (i in cols){
+  chi = chisq.test(titanic[,i], titanic$Survived, correct = FALSE)
+  matrix <- rbind(matrix, chi[3])
+  rownames(matrix)[nrow(matrix)] <- i
+}
+matrix
+```
+Por lo que podemos observar en la matriz anterior, aquellos elementos con p-value menor de 0.05 tienen una fuerte correlación con la supervivencia o no del Titanic. Por lo tanto, el único campo que parece no tener relevancia alguna es "Age", ya que tiene un valor mayor de 0.05. Por otro lado, el campo con mayor relevancia parece haber sido "Sex".
+
+#### Contraste de hipótesis
+
+A continuación se realizará otra prueba estadística para determinar si aquellos pasajeros que pagaron más por su ticket, tenían más posibilidades de sobrevivir.
+
+Para ello tendremos dos muestras, una reflejando el precio del ticket de aquellas personas que sobrevivieron y otra de aquellas que no sobrevivieron. Para esto utilizamos el test de Wilcoxon-Mann-Whitney, el cual contrasta si dos muestras proceden de la misma distribución o si, por el contrario, una de ellas tiende a producir valores más altos que la otra. Suele utilizarse como alternativa no paramétrica al t-test, cuando no se dan las condiciones de normalidad en las variables, como es nuestro caso.
+```{r message= FALSE, warning=FALSE}
+titanic.survived.fare <- titanic[titanic$Survived == "1",]$Fare
+titanic.notSurvived.fare <- titanic[titanic$Survived == "0",]$Fare
+
+wilcox.test(titanic.survived.fare, titanic.notSurvived.fare, alternative="less")
+```
+Al tener un valor de p-value igual a 1, se puede asegurar que la hipótesis era correcta y efectivamente, aquellos pasajeros que invirtieron más dinero en el billete, tuvieron más probabilidad de salvarse.
+
+
+#### Regresión Logística
+
+Como se expuso al principio, el objetivo de este estudio era la capacidad de llevar a cabo un algoritmo predictivo que permitiera inferir si un pasajero dada unas determinadas condiciones sobreviviría o no al hundimiento del Titanic. Por eso, teniendo en cuenta que se trata de un problema de clasificación binaria, se emplea una regresión logística.
+
+En primer lugar, se divide el conjunto de datos en uno de entrenamiento y otro de evaluación. Entrenamos la regresión logística con el conjunto de entrenamiento
+```{r message= FALSE, warning=FALSE}
+train <- titanic[1:800,]
+test <- titanic[801:891,]
+model <- glm(Survived ~.,family=binomial(link='logit'),data=train)
+summary(model)
+anova(model, test="Chisq")
+```
+
+A partir de esta regresión logística, se puede observar que las variables "Parch", "Fare" y "Embarked" aportan muy poco o nada a la hora de predecir. Como se puede observar, cuando la variable "Sex" tiene valor "male", es decir cuando los pasajeros son hombres, tienen menos posibilidades de sobrevivir que si fueran mujeres.
+
+Por último evaluamos el modelo con el conjunto de evaluación, dando un precisión de 83.5%, la cual es un porcentaje bastante decente.
+
+```{r message= FALSE, warning=FALSE}
+fitted.results <- predict(model,newdata=subset(test),type='response')
+fitted.results <- ifelse(fitted.results > 0.5,1,0)
+misClasificError <- mean(fitted.results != test$Survived)
+print(paste('Accuracy',1-misClasificError))
+```
+
 ## Representación de los resultados a partir de tablas y gráficas
 
+```{r message= FALSE, warning=FALSE}
+titanic <- read.table(file="data/titanic_final.csv", header=TRUE, sep=",")
+titanic$X <- NULL
+cols <- c("Survived", "Pclass", "SibSp", "Parch")
+for (i in cols){
+  titanic[,i] <- as.factor(titanic[,i])
+}
+ggplot(titanic, aes(x=titanic$PassengerId, y=titanic$Fare, color=titanic$Survived, shape=titanic$Sex)) + geom_point()
+```
+
+```{r message= FALSE, warning=FALSE}
+# Tabla de contingencia mostrando número de personas que sobrevivieron por estado socio económico
+table(titanic$Survived, titanic$Pclass)
+
+# Tabla de contingencia mostrando número de personas que sobrevivieron por sexo
+table(titanic$Survived, titanic$Sex)
+```
+
 ## Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema?
+
+A partir del análisis realizado, se puede deducir que las variables que más influyen en la supervivencia de un pasajero del Titanic son el sexo y el estado socio económico. Como se dijo en un principio, el estado económico de una persona era muy relevante, ya que la mayor cantidad de pasajeros que murieron pertenecían a la tercera clase. También se puede observar que si una persona era mujer tenía mas probabilidades de sobrevivir.
+
+## Código
+
+El código ejecutado en este proyecto se puede encontrar en el siguiente enlace [link](https://github.com/rdbadra/Kaggle-Titanic)
