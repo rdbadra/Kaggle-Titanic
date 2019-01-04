@@ -14,4 +14,4 @@ Esta práctica ha sido realizada de manera individual por **Roberto Díaz Badra*
 * **data/train.csv** El dataset origen.
 * **data/titanic_final.csv** El fichero con los datos analizados.
 * **data/test.csv** Fichero proporcionado por Kaggle, para la participación en un torneo(No aplica al proyecto de la UOC).
-* **rdbadra-practica2.html** Documento generado a partir del fichero Rmd.
+* **rdbadra-practica2.pdf** Documento generado a partir del fichero Rmd.
