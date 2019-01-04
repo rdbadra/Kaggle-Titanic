@@ -54,7 +54,7 @@ Mediante este análisis, se podrá llegar a realizar un modelo de clasificación
 
 ```{r message= FALSE, warning=FALSE}
 # Lectura de datos
-titanic <- read.table(file="data/train.csv", header=TRUE, sep=",")
+titanic <- read.table(file="../data/train.csv", header=TRUE, sep=",")
 
 # Observamos la estructura del conjunto de datos
 str(titanic)
@@ -105,7 +105,10 @@ Mostramos en una gráfica de dispersión las tarifas que pagaron los pasajeros d
 ```{r message= FALSE, warning=FALSE}
 ggplot(titanic, aes(x=titanic$Name, y=titanic$Fare)) + geom_point()
 ```
+
+
 Creamos una nueva gráfica filtrando por el estado socio económico de los pasajeros, ya que podemos observar que hay elementos que tienen valores mucho más elevados que la media y observamos que estos valores elevados, son de pasajeros de primera clase, por lo que podríamos pensar que son valores correctos. Así que no los eliminaremos.
+
 ```{r message= FALSE, warning=FALSE}
 ggplot(titanic, aes(x=titanic$Name, y=titanic$Fare, color=titanic$Pclass)) + geom_point()
 ```
@@ -128,7 +131,7 @@ str(titanic)
 ### Almacenamiento del CSV final
 Una vez finalizados todos los procedimientos de limpieza de datos, realizados sobre el conjunto de datos inicial, procedemos a almacenar este conjunto de datos final en un nuevo archivo en formato CSV.
 ```{r message= FALSE, warning=FALSE}
-write.csv(titanic, "data/titanic_final.csv")
+write.csv(titanic, "../data/titanic_final.csv")
 titanic$PassengerId <- NULL
 ```
 
@@ -188,7 +191,7 @@ fligner.test(Fare~Sex, data=titanic)
 ```
 Al ser el p-value menor de 0.05, se rechaza la hipótesis de que las varianzas de las muestras son homogéneas.
 
-### Aplicación de pruebas estadísticas para comparar los grupos de datos. En función de los datos y el objetivo del estudio, aplicar pruebas de contraste de hipótesis, correlaciones, regresiones, etc.
+### Aplicación de pruebas estadísticas
 
 #### Análisis de correlación
 
@@ -236,7 +239,7 @@ anova(model, test="Chisq")
 
 A partir de esta regresión logística, se puede observar que las variables "Parch", "Fare" y "Embarked" aportan muy poco o nada a la hora de predecir. Como se puede observar, cuando la variable "Sex" tiene valor "male", es decir cuando los pasajeros son hombres, tienen menos posibilidades de sobrevivir que si fueran mujeres.
 
-Por último evaluamos el modelo con el conjunto de evaluación, dando un precisión de 83.5%, la cual es un porcentaje bastante decente.
+Por último evaluamos el modelo con el conjunto de evaluación, dando un precisión de 82%, la cual es un porcentaje bastante decente.
 
 ```{r message= FALSE, warning=FALSE}
 fitted.results <- predict(model,newdata=subset(test),type='response')
@@ -248,7 +251,7 @@ print(paste('Accuracy',1-misClasificError))
 ## Representación de los resultados a partir de tablas y gráficas
 
 ```{r message= FALSE, warning=FALSE}
-titanic <- read.table(file="data/titanic_final.csv", header=TRUE, sep=",")
+titanic <- read.table(file="../data/titanic_final.csv", header=TRUE, sep=",")
 titanic$X <- NULL
 cols <- c("Survived", "Pclass", "SibSp", "Parch")
 for (i in cols){
@@ -265,9 +268,11 @@ table(titanic$Survived, titanic$Pclass)
 table(titanic$Survived, titanic$Sex)
 ```
 
-## Resolución del problema. A partir de los resultados obtenidos, ¿cuáles son las conclusiones? ¿Los resultados permiten responder al problema?
+## Conclusiones
 
 A partir del análisis realizado, se puede deducir que las variables que más influyen en la supervivencia de un pasajero del Titanic son el sexo y el estado socio económico. Como se dijo en un principio, el estado económico de una persona era muy relevante, ya que la mayor cantidad de pasajeros que murieron pertenecían a la tercera clase. También se puede observar que si una persona era mujer tenía mas probabilidades de sobrevivir.
+
+Por todos esto, se puede llegar a la conclusión de que el análisis realizado ha sido lo bastante eficiente como para poder llegar a realizar deducciones a partir de estos datos, no solo esto, sino que como se demostró en el apartado anterior, es completamente posible la generación de un modelo de clasifiación, que permite llevar a cabo una predicción con un buen porcentaje de precisión.
 
 ## Código
 
